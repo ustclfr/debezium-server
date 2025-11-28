@@ -128,6 +128,15 @@ public class RocketMqChangeConsumer extends BaseChangeConsumer implements Debezi
         }
     }
 
+    // https://issues.redhat.com/browse/DBZ-3827 如果不加这个会报错
+    @Override
+    protected byte[] getBytes(Object object) {
+        if (data == null) {
+            return new byte[0];                 // ← 新增这一行，兼容 tombstone
+        }
+        return super.getBytes(object);
+    }
+
     @Override
     public void handleBatch(List<ChangeEvent<Object, Object>> records, DebeziumEngine.RecordCommitter<ChangeEvent<Object, Object>> committer)
             throws InterruptedException {
