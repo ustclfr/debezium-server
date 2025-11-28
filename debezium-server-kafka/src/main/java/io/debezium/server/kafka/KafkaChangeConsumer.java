@@ -6,12 +6,9 @@
 package io.debezium.server.kafka;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -91,55 +88,33 @@ public class KafkaChangeConsumer extends BaseChangeConsumer implements DebeziumE
     public void handleBatch(final List<ChangeEvent<Object, Object>> records,
                             final RecordCommitter<ChangeEvent<Object, Object>> committer)
             throws InterruptedException {
-
-        final List<Future<RecordMetadata>> deliveryFutures = new ArrayList<>(records.size());
-
         for (ChangeEvent<Object, Object> record : records) {
             try {
                 LOGGER.trace("Received event '{}'", record);
                 Headers headers = convertKafkaHeaders(record);
 
                 String topicName = streamNameMapper.map(record.destination());
-                deliveryFutures.add(producer.send(new ProducerRecord<>(topicName, null, null, record.key(), record.value(), headers),
+                Future<RecordMetadata> recordMetadataFuture = producer.send(new ProducerRecord<>(topicName, null, null, record.key(), record.value(), headers),
                         (metadata, exception) -> {
                             if (exception != null) {
-                                LOGGER.error("Failed to send record with key '{}' to {}:", asString(record.key()), topicName,
-                                        exception);
+                                LOGGER.error("Failed to send record to {}:", topicName, exception);
                                 throw new DebeziumException(exception);
                             }
                             else {
                                 LOGGER.trace("Sent message with offset: {}", metadata.offset());
                             }
-                        }));
-            }
-            catch (Exception e) {
-                throw new DebeziumException(e);
-            }
-        }
-
-        try {
-            for (int i = 0; i < records.size(); i++) {
-                final var recordMetadataFuture = deliveryFutures.get(i);
-                final var record = records.get(i);
-
+                        });
                 if (waitMessageDeliveryTimeout == 0) {
                     recordMetadataFuture.get();
                 }
                 else {
-                    try {
-                        recordMetadataFuture.get(waitMessageDeliveryTimeout, TimeUnit.MILLISECONDS);
-                    }
-                    catch (TimeoutException e) {
-                        LOGGER.error("Timed out while waiting to send a record to '{}'", streamNameMapper.map(record.destination()));
-                        throw new DebeziumException(e);
-                    }
-
+                    recordMetadataFuture.get(waitMessageDeliveryTimeout, TimeUnit.MILLISECONDS);
                 }
                 committer.markProcessed(record);
             }
-        }
-        catch (ExecutionException e) {
-            throw new DebeziumException(e);
+            catch (Exception e) {
+                throw new DebeziumException(e);
+            }
         }
 
         committer.markBatchFinished();

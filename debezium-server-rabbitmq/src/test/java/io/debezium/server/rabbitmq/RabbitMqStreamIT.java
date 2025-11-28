@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.stream.Address;
 import com.rabbitmq.stream.Consumer;
 import com.rabbitmq.stream.Environment;
 import com.rabbitmq.stream.OffsetSpecification;
@@ -77,15 +76,9 @@ public class RabbitMqStreamIT {
         factory.setHost(RabbitMqStreamTestResourceLifecycleManager.container.getHost());
         factory.setPort(RabbitMqStreamTestResourceLifecycleManager.getPort());
 
-        Address entryPoint = new Address(factory.getHost(), factory.getPort());
         environment = Environment.builder()
-                .host(entryPoint.host())
-                .port(entryPoint.port())
-                .addressResolver(address -> entryPoint)
-                .username(factory.getUsername())
-                .password(factory.getPassword())
-                .virtualHost(factory.getVirtualHost())
-                .build();
+                .host(factory.getHost())
+                .port(factory.getPort()).build();
 
         environment.streamCreator().stream(RabbitMqTestConfigSource.TOPIC_NAME).create();
 

@@ -5,7 +5,6 @@
  */
 package io.debezium.server.pulsar;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,14 +13,12 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Named;
 
-import org.apache.pulsar.client.api.BatcherBuilder;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -56,8 +53,6 @@ public class PulsarChangeConsumer extends BaseChangeConsumer implements Debezium
     private static final String PROP_CLIENT_PREFIX = PROP_PREFIX + "client.";
     private static final String PROP_PRODUCER_PREFIX = PROP_PREFIX + "producer.";
 
-    private static final AtomicBoolean hasFailed = new AtomicBoolean(false);
-
     public interface ProducerBuilder {
         Producer<Object> get(String topicName, Object value);
     }
@@ -78,9 +73,6 @@ public class PulsarChangeConsumer extends BaseChangeConsumer implements Debezium
     @ConfigProperty(name = PROP_PREFIX + "timeout", defaultValue = "0")
     Integer timeout;
 
-    @ConfigProperty(name = PROP_PRODUCER_PREFIX + "batcherBuilder", defaultValue = "DEFAULT")
-    String batcherBuilderConfig;
-
     @PostConstruct
     void connect() {
         final Config config = ConfigProvider.getConfig();
@@ -97,29 +89,16 @@ public class PulsarChangeConsumer extends BaseChangeConsumer implements Debezium
 
     @PreDestroy
     void close() {
-        final List<CompletableFuture<Void>> closeFutures = new ArrayList<>(producers.size());
         producers.values().forEach(producer -> {
-            // Avoid potentially infinitely long blocking call if things go wrong.
-            closeFutures.add(producer.closeAsync().orTimeout(timeout, TimeUnit.MILLISECONDS));
-        });
-        for (CompletableFuture<Void> cf : closeFutures) {
             try {
-                cf.get();
+                producer.close();
             }
             catch (Exception e) {
-                hasFailed.set(true);
                 LOGGER.warn("Exception while closing producer", e);
             }
-        }
+        });
         try {
-            // DBZ-8843 If the client failed, terminate it abruptly to prevent client restart during or after server shutdown.
-            if (hasFailed.get()) {
-                LOGGER.warn("Shutting down pulsar client forcefully due to previous failure");
-                pulsarClient.shutdown();
-            }
-            else {
-                pulsarClient.close();
-            }
+            pulsarClient.close();
         }
         catch (Exception e) {
             LOGGER.warn("Exception while closing client", e);
@@ -133,30 +112,17 @@ public class PulsarChangeConsumer extends BaseChangeConsumer implements Debezium
                 return pulsarClient.newProducer(Schema.STRING)
                         .loadConf(producerConfig)
                         .topic(topicFullName)
-                        .batcherBuilder(getBatcherBuilder(batcherBuilderConfig))
                         .create();
             }
             else {
                 return pulsarClient.newProducer()
                         .loadConf(producerConfig)
                         .topic(topicFullName)
-                        .batcherBuilder(getBatcherBuilder(batcherBuilderConfig))
                         .create();
             }
         }
         catch (PulsarClientException e) {
-            hasFailed.set(true);
             throw new DebeziumException(e);
-        }
-    }
-
-    private BatcherBuilder getBatcherBuilder(String configValue) {
-        switch (configValue) {
-            case "KEY_BASED":
-                return BatcherBuilder.KEY_BASED;
-            case "DEFAULT":
-            default:
-                return BatcherBuilder.DEFAULT;
         }
     }
 
@@ -223,7 +189,6 @@ public class PulsarChangeConsumer extends BaseChangeConsumer implements Debezium
             }
         }
         catch (CompletionException | ExecutionException | TimeoutException exception) {
-            hasFailed.set(true);
             LOGGER.error("Failed to send batch", exception);
             throw new DebeziumException(exception);
         }

@@ -20,14 +20,13 @@
             <exclude>javax.ws.rs:javax.ws.rs-api:*</exclude>
             <exclude>org.apache.kafka:connect-file:*</exclude>
             <exclude>org.glassfish.jersey.*:*:*</exclude>
-            <exclude>org.codehaus.plexus:*:*</exclude>
+            <exclude>org.apache.maven:*:*</exclude>
             <exclude>log4j:log4j:*</exclude>
             <exclude>ch.qos.reload4j:reload4j</exclude>
     	    <exclude>io.debezium:debezium-scripting</exclude>
             <exclude>io.debezium:debezium-scripting-languages</exclude>
             <exclude>io.debezium:debezium-connector-cassandra-3</exclude>
             <exclude>io.debezium:debezium-connector-cassandra-4</exclude>
-            <exclude>io.debezium:debezium-connector-cassandra-5</exclude>
             <exclude>io.debezium:debezium-connector-dse</exclude>
             <exclude>io.prometheus.jmx:jmx_prometheus_javaagent:*</exclude>
           </excludes>
@@ -44,12 +43,6 @@
               <include>jakarta.xml.bind:*:*</include>
               <include>jakarta.activation:*:*</include>
               <include>jakarta.validation:*:*</include>
-              <!--
-              DBZ-8863 Explicitly include SnakeYAML, required by quarkus-config-yaml. It is being
-              incorrectly removed by transitive dependency filtering added for
-              debezium-connector-dse exclusion.
-              -->
-              <include>org.yaml:snakeyaml:*:*</include>
           </includes>
       </dependencySet>
       <dependencySet>
@@ -101,16 +94,6 @@
           <useTransitiveFiltering>true</useTransitiveFiltering>
           <includes>
               <include>io.debezium:debezium-connector-cassandra-4:zip:plugin</include>
-          </includes>
-      </dependencySet>
-      <dependencySet>
-          <outputDirectory>${project.parent.artifactId}/connectors/</outputDirectory>
-          <unpack>true</unpack>
-          <scope>runtime</scope>
-          <useProjectArtifact>false</useProjectArtifact>
-          <useTransitiveFiltering>true</useTransitiveFiltering>
-          <includes>
-              <include>io.debezium:debezium-connector-cassandra-5:zip:plugin</include>
           </includes>
       </dependencySet>
   </dependencySets>

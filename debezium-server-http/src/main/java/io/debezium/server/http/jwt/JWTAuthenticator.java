@@ -16,7 +16,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +146,7 @@ public class JWTAuthenticator implements Authenticator {
         return builder.build();
     }
 
-    public void setAuthorizationHeader(HttpRequest.Builder httpRequestBuilder, final String bodyContent, final UUID messageId) {
+    public void setAuthorizationHeader(HttpRequest.Builder httpRequestBuilder) {
         checkAuthenticationExpired();
         if (authenticationState == AuthenticationState.NOT_AUTHENTICATED || authenticationState == AuthenticationState.FAILED_AUTHENTICATION) {
             throw new DebeziumException("Must successfully authenticate against JWT endpoint before you can add the authorization information to the HTTP header.");

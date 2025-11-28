@@ -37,7 +37,6 @@ public class DebeziumServerTest {
     private static final int MESSAGE_COUNT = 5;
 
     {
-        System.out.println("Deleting file");
         Testing.Files.delete(TestConfigSource.OFFSET_STORE_PATH);
     }
 

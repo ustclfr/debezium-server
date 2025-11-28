@@ -11,7 +11,6 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -79,7 +78,7 @@ public class JWTAuthenticatorTest {
 
         URI testURI = new URI("http://test.com/cookies");
         HttpRequest.Builder builder = HttpRequest.newBuilder(testURI);
-        authenticator.setAuthorizationHeader(builder, "", new UUID(0, 0));
+        authenticator.setAuthorizationHeader(builder);
         HttpRequest request = builder.build();
 
         HttpHeaders headers = request.headers();

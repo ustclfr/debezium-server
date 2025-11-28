@@ -132,6 +132,7 @@ public class PubSubLiteChangeConsumer extends BaseChangeConsumer implements Debe
             PubsubMessage message = buildPubSubMessage(record);
 
             deliveries.add(publisher.publish(message));
+            committer.markProcessed(record);
         }
         List<String> messageIds;
         try {
@@ -141,12 +142,6 @@ public class PubSubLiteChangeConsumer extends BaseChangeConsumer implements Debe
             throw new DebeziumException(e);
         }
         LOGGER.trace("Sent messages with ids: {}", messageIds);
-
-        // Once publishing is confirmed, mark all records as processed
-        for (ChangeEvent<Object, Object> record : records) {
-            committer.markProcessed(record);
-        }
-
         committer.markBatchFinished();
     }
 

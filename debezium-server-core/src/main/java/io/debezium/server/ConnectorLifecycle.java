@@ -19,8 +19,6 @@ import io.debezium.engine.DebeziumEngine;
 import io.debezium.server.events.ConnectorCompletedEvent;
 import io.debezium.server.events.ConnectorStartedEvent;
 import io.debezium.server.events.ConnectorStoppedEvent;
-import io.debezium.server.events.PollingStartedEvent;
-import io.debezium.server.events.PollingStoppedEvent;
 import io.debezium.server.events.TaskStartedEvent;
 import io.debezium.server.events.TaskStoppedEvent;
 
@@ -52,12 +50,6 @@ public class ConnectorLifecycle implements HealthCheck, DebeziumEngine.Connector
     Event<TaskStoppedEvent> taskStoppedEvent;
 
     @Inject
-    Event<PollingStartedEvent> pollingStartedEvent;
-
-    @Inject
-    Event<PollingStoppedEvent> pollingStoppedEvent;
-
-    @Inject
     Event<ConnectorCompletedEvent> connectorCompletedEvent;
 
     @Override
@@ -83,18 +75,6 @@ public class ConnectorLifecycle implements HealthCheck, DebeziumEngine.Connector
     public void taskStopped() {
         LOGGER.debug("Task stopped");
         taskStoppedEvent.fire(new TaskStoppedEvent());
-    }
-
-    @Override
-    public void pollingStarted() {
-        LOGGER.debug("Polling started");
-        pollingStartedEvent.fire(new PollingStartedEvent());
-    }
-
-    @Override
-    public void pollingStopped() {
-        LOGGER.debug("Polling stopped");
-        pollingStoppedEvent.fire(new PollingStoppedEvent());
     }
 
     @Override

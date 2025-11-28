@@ -3,13 +3,13 @@
     <parent>
         <groupId>io.debezium</groupId>
         <artifactId>debezium-parent</artifactId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>2.7.3.Final</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>debezium-server</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>2.7.3.Final</version>
     <name>Debezium Server Parent</name>
     <packaging>pom</packaging>
 
@@ -17,7 +17,7 @@
         <connection>scm:git:git@github.com:debezium/debezium-server.git</connection>
         <developerConnection>scm:git:git@github.com:debezium/debezium-server.git</developerConnection>
         <url>https://github.com/debezium/debezium-server</url>
-      <tag>HEAD</tag>
+      <tag>v2.7.3.Final</tag>
     </scm>
 
     <properties>
@@ -26,27 +26,13 @@
 
         <!-- Debezium parent -->
         <version.debezium>${project.version}</version.debezium>
-
-        <!-- JDK version is controlled by Debezium Parent, do not change! -->
-        <!--    the compiler setting may be different from the parent -->
-        <!--    thus the setting must be here and use the referenced properties -->
-        <!--    e.g. different setting may be required due to quarkus version -->
-        <maven.compiler.source>${debezium.java.source}</maven.compiler.source>
-        <maven.compiler.target>${debezium.java.specific.target}</maven.compiler.target>
-        <maven.compiler.release>${debezium.java.specific.target}</maven.compiler.release>
-        <maven.compiler.testSource>${debezium.java.source}</maven.compiler.testSource>
-        <maven.compiler.testTarget>${debezium.java.specific.target}</maven.compiler.testTarget>
-        <maven.compiler.testRelease>${debezium.java.specific.target}</maven.compiler.testRelease>
-
-        <mockito.argLine>-javaagent:${org.mockito:mockito-core:jar}</mockito.argLine>
-
     </properties>
 
     <repositories>
         <repository>
-            <id>central-snapshots</id>
-            <name>Maven Central Snapshots</name>
-            <url>${publish.snapshot.url}</url>
+            <id>oss</id>
+            <name>OSS Sonatype Nexus</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
@@ -64,8 +50,6 @@
         <module>debezium-server-kinesis</module>
         <module>debezium-server-pubsub</module>
         <module>debezium-server-pulsar</module>
-        <module>debezium-server-milvus</module>
-        <module>debezium-server-qdrant</module>
         <module>debezium-server-eventhubs</module>
         <module>debezium-server-http</module>
         <module>debezium-server-redis</module>
@@ -78,7 +62,6 @@
         <module>debezium-server-rabbitmq</module>
         <module>debezium-server-rocketmq</module>
         <module>debezium-server-sqs</module>
-        <module>debezium-server-instructlab</module>
         <module>debezium-system-tests</module>
     </modules>
 

@@ -3,24 +3,22 @@
     <parent>
         <groupId>io.debezium</groupId>
         <artifactId>debezium-build-parent</artifactId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>2.7.3.Final</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>debezium-server-bom</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+  <version>2.7.3.Final</version>
     <name>Debezium Server BOM</name>
     <packaging>jar</packaging>
 
     <properties>
-        <version.kinesis>2.17.241</version.kinesis>
+        <version.kinesis>2.13.13</version.kinesis>
         <version.sqs>2.13.13</version.sqs>
         <version.pubsub>26.17.0</version.pubsub>
         <version.pulsar>2.10.1</version.pulsar>
-        <version.milvus>2.5.4</version.milvus>
-        <version.qdrant>1.14.0</version.qdrant>
-        <version.eventhubs>5.19.1</version.eventhubs>
-        <version.pravega>0.13.0</version.pravega>
-        <version.nats>2.21.2</version.nats>
+        <version.eventhubs>5.12.1</version.eventhubs>
+        <version.pravega>0.9.1</version.pravega>
+        <version.nats>2.16.3</version.nats>
         <version.stan>2.2.3</version.stan>
         <version.commons.logging>1.2</version.commons.logging>
         <version.jmx.exporter>1.0.1</version.jmx.exporter>
@@ -49,28 +47,6 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
                 <version>${version.kafka}</version>
-            </dependency>
-
-            <!-- This needs to be defined before Quarkus to guarantee that the
-                 right Infinispan dependencies are imported -->
-            <dependency>
-                <groupId>org.infinispan</groupId>
-                <artifactId>infinispan-bom</artifactId>
-                <version>${version.infinispan}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <!-- Ehcache JAXB implementation dependency -->
-            <dependency>
-                <groupId>org.glassfish.jaxb</groupId>
-                <artifactId>jaxb-runtime</artifactId>
-                <version>${version.jaxb.implementation}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jaxb</groupId>
-                <artifactId>txw2</artifactId>
-                <version>${version.jaxb.implementation}</version>
             </dependency>
 
             <!-- Quarkus dependencies -->
@@ -191,21 +167,6 @@
             </dependency>
             <dependency>
                 <groupId>io.debezium</groupId>
-                <artifactId>debezium-server-milvus</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.debezium</groupId>
-                <artifactId>debezium-server-qdrant</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.debezium</groupId>
-                <artifactId>debezium-server-instructlab</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.debezium</groupId>
                 <artifactId>debezium-server-core</artifactId>
                 <type>test-jar</type>
                 <version>${project.version}</version>
@@ -253,16 +214,6 @@
                 <version>${version.pulsar}</version>
             </dependency>
             <dependency>
-                <groupId>io.milvus</groupId>
-                <artifactId>milvus-sdk-java</artifactId>
-                <version>${version.milvus}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.qdrant</groupId>
-                <artifactId>client</artifactId>
-                <version>${version.qdrant}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-messaging-eventhubs</artifactId>
                 <version>${version.eventhubs}</version>
@@ -304,6 +255,13 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-bom</artifactId>
+                <version>${version.infinispan}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
             <!-- Testing -->
             <dependency>
@@ -324,11 +282,6 @@
                 <version>1.19.3</version>
                 <type>test-jar</type>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${version.mockito}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

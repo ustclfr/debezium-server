@@ -37,7 +37,6 @@ import com.google.api.gax.batching.BatchingSettings;
 import com.google.api.gax.batching.FlowControlSettings;
 import com.google.api.gax.batching.FlowController;
 import com.google.api.gax.core.CredentialsProvider;
-import com.google.api.gax.core.InstantiatingExecutorProvider;
 import com.google.api.gax.core.NoCredentialsProvider;
 import com.google.api.gax.grpc.GrpcTransportChannel;
 import com.google.api.gax.retrying.RetrySettings;
@@ -74,12 +73,6 @@ public class PubSubChangeConsumer extends BaseChangeConsumer implements Debezium
     private static final String PROP_PREFIX = "debezium.sink.pubsub.";
     private static final String PROP_PROJECT_ID = PROP_PREFIX + "project.id";
 
-    private static final String DEFAULT_CONCURRENCY_THREADS_STRING = "0";
-    private static final int DEFAULT_CONCURRENCY_THREADS = Integer.parseInt(DEFAULT_CONCURRENCY_THREADS_STRING);
-
-    private static final String DEFAULT_COMPRESSION_THRESHOLD_BYTES_STRING = "-1";
-    private static final int DEFAULT_COMPRESSION_THRESHOLD_BYTES = Integer.parseInt(DEFAULT_COMPRESSION_THRESHOLD_BYTES_STRING);
-
     public interface PublisherBuilder {
         Publisher get(ProjectTopicName topicName);
     }
@@ -104,7 +97,7 @@ public class PubSubChangeConsumer extends BaseChangeConsumer implements Debezium
     @ConfigProperty(name = PROP_PREFIX + "batch.element.count.threshold", defaultValue = "100")
     Long maxBufferSize;
 
-    @ConfigProperty(name = PROP_PREFIX + "batch.request.byte.threshold", defaultValue = "9500000")
+    @ConfigProperty(name = PROP_PREFIX + "batch.request.byte.threshold", defaultValue = "10000000")
     Long maxBufferBytes;
 
     @ConfigProperty(name = PROP_PREFIX + "flowcontrol.enabled", defaultValue = "false")
@@ -140,20 +133,11 @@ public class PubSubChangeConsumer extends BaseChangeConsumer implements Debezium
     @ConfigProperty(name = PROP_PREFIX + "wait.message.delivery.timeout.ms", defaultValue = "30000")
     Integer waitMessageDeliveryTimeout;
 
-    @ConfigProperty(name = PROP_PREFIX + "concurrency.threads", defaultValue = DEFAULT_CONCURRENCY_THREADS_STRING)
-    int concurrencyThreads;
-
-    @ConfigProperty(name = PROP_PREFIX + "compression.threshold.bytes", defaultValue = DEFAULT_COMPRESSION_THRESHOLD_BYTES_STRING)
-    long compressionBytesThreshold;
-
     @ConfigProperty(name = PROP_PREFIX + "channel.shutdown.timeout.ms", defaultValue = "30000")
     Integer channelShutdownTimeout;
 
     @ConfigProperty(name = PROP_PREFIX + "address")
     Optional<String> address;
-
-    @ConfigProperty(name = PROP_PREFIX + "region")
-    Optional<String> region;
 
     @Inject
     @CustomConsumerBuilder
@@ -213,24 +197,8 @@ public class PubSubChangeConsumer extends BaseChangeConsumer implements Debezium
                                         .setRpcTimeoutMultiplier(rpcTimeoutMultiplier)
                                         .build());
 
-                if (concurrencyThreads > DEFAULT_CONCURRENCY_THREADS) {
-                    builder.setExecutorProvider(
-                            InstantiatingExecutorProvider.newBuilder()
-                                    .setExecutorThreadCount(concurrencyThreads)
-                                    .build());
-                }
-
-                if (compressionBytesThreshold >= DEFAULT_COMPRESSION_THRESHOLD_BYTES) {
-                    builder.setEnableCompression(true)
-                            .setCompressionBytesThreshold(compressionBytesThreshold);
-                }
-
                 if (address.isPresent()) {
                     builder.setChannelProvider(channelProvider).setCredentialsProvider(credentialsProvider);
-                }
-                else if (region.isPresent()) {
-                    String endpoint = String.format("%s-pubsub.googleapis.com:443", region.get());
-                    builder.setEndpoint(endpoint);
                 }
 
                 return builder.build();
@@ -297,6 +265,8 @@ public class PubSubChangeConsumer extends BaseChangeConsumer implements Debezium
             PubsubMessage message = buildPubSubMessage(record);
 
             deliveries.add(publisher.publish(message));
+
+            committer.markProcessed(record);
         }
         List<String> messageIds;
         try {
@@ -306,12 +276,6 @@ public class PubSubChangeConsumer extends BaseChangeConsumer implements Debezium
             throw new DebeziumException(e);
         }
         LOGGER.trace("Sent messages with ids: {}", messageIds);
-
-        // Once publishing is confirmed, mark all records as processed
-        for (ChangeEvent<Object, Object> record : records) {
-            committer.markProcessed(record);
-        }
-
         committer.markBatchFinished();
     }
 

@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -48,10 +47,8 @@ public class DebeziumServerPostgresIT {
     @Inject
     DebeziumMetrics metrics;
 
-    @BeforeEach
-    void setUp() {
+    {
         Testing.Files.delete(TestConfigSource.OFFSET_STORE_PATH);
-        Testing.Files.createTestingFile(TestConfigSource.OFFSET_STORE_PATH);
     }
 
     @Test
@@ -63,9 +60,6 @@ public class DebeziumServerPostgresIT {
         final TestConsumer testConsumer = (TestConsumer) server.getConsumer();
 
         waitSnapshotCompletion();
-
-        Awaitility.await().atMost(Duration.ofSeconds(TestConfigSource.waitForSeconds()))
-                .until(() -> (testConsumer.getValues().size() >= MESSAGE_COUNT));
 
         assertThat(testConsumer.getValues().size()).isEqualTo(MESSAGE_COUNT);
 
